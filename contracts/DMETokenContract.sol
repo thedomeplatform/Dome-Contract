@@ -30,6 +30,15 @@ contract TheDomePlatformToken is StandardToken, Ownable {
         _;
     }
 
+    uint256 private crowdsaleSupply = 60000000000000000000000000;
+    uint256 private reserveSupply = 25130000000000000000000000;
+    uint256 private bountySupply = 270000000000000000000000;
+    uint256 private bonusesSupply = 2800000000000000000000000;
+    uint256 private developersSupply = 1800000000000000000000000;
+    
+    uint256 public bonusesSold = 0;
+    uint256 public tokensSold = 0;
+
     function TheDomePlatformToken(address _wallet, uint _start, uint _end) {
         require(_wallet != 0x0);
         require(_start < _end);
@@ -38,9 +47,7 @@ contract TheDomePlatformToken is StandardToken, Ownable {
         wallet = _wallet;
 
         //90,000,000 DME tokens
-        totalSupply = 90000000;
-	crowdsaleSupply = 60000000;
-	bonusesSupply = 2800000;
+        totalSupply = 90000000000000000000000000;
 
 	bonusesSold = 0;
 	tokensSold = 0;
@@ -53,12 +60,45 @@ contract TheDomePlatformToken is StandardToken, Ownable {
 
 	startDate = _start;
 	endDate = _end;
+
+	// Send the bounty and developers funds to the creator wallet
+        balances[_wallet] = balances[_wallet].add(developersSupply + bountySupply);
+	// Store the reserve funds in the contract
+	balances[this] = balances[this].add(reserveSupply);
+    }
+
+    // In case any tokens are not sold they will be added to the reserve
+    function addToReserve() onlyOwner {
+        if (bonusesSold < bonusesSupply) {
+            uint256 remainingBonuses = bonusesSupply.sub(bonusesSold);
+            reserveSupply += remainingBonuses;
+        }
+        if (tokensSold < crowdsaleSupply) {
+            uint256 remainingTokens = crowdsaleSupply.sub(tokensSold);
+            reserveSupply += remainingTokens;
+        }
+    }
+
+    // This function will allow us to withdraw the reserve in order to distribute it
+    // to Wi-Fi contributors
+    function transferReserve(address _to) onlyOwner {
+	require(balances[this] == reserveSupply);
+        balances[_to] = balances[_to].add(reserveSupply);
+	balances[this] = balances[this].sub(reserveSupply);
+        Transfer(msg.sender, _to, reserveSupply);
     }
 
     function setupPeriod(uint _start, uint _end) onlyOwner {
         require(_start < _end);
         startDate = _start;
         endDate = _end;
+    }
+
+    function transferReserve(_to) onlyOwner {
+	require(balances[this] == reserveSupply);
+        balances[_to] = balances[_to].add(reserveSupply);
+	balances[this] = balances[this].sub(reserveSupply);
+        Transfer(msg.sender, _to, reserveSupply);
     }
 
     // fallback function can be used to buy tokens

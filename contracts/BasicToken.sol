@@ -19,6 +19,7 @@ contract BasicToken is ERC20Basic {
     */
     function transfer(address _to, uint256 _value) returns (bool) {
         balances[_to] = balances[_to].add(_value);
+        balances[msg.sender] = balances[msg.sender].sub(_value);
         Transfer(msg.sender, _to, _value);
         return true;
     }
