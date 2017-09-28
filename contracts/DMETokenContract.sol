@@ -72,10 +72,16 @@ contract TheDomePlatformToken is StandardToken, Ownable {
         if (bonusesSold < bonusesSupply) {
             uint256 remainingBonuses = bonusesSupply.sub(bonusesSold);
             reserveSupply += remainingBonuses;
+	    balances[this] = balances[this].add(remainingBonuses);
+	    // No more bonuses
+	    bonusesSold = bonusesSupply;
         }
         if (tokensSold < crowdsaleSupply) {
             uint256 remainingTokens = crowdsaleSupply.sub(tokensSold);
             reserveSupply += remainingTokens;
+	    balances[this] = balances[this].add(remainingTokens);
+	    // No more tokens to sel, everything goes to reserve.
+	    tokensSold = crowdsaleSupply;
         }
     }
 
